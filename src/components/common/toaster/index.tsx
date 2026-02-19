@@ -1,14 +1,11 @@
- "use client";
+"use client";
 
 import { Toaster } from "react-hot-toast";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export function ThemedToaster() {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -26,10 +23,13 @@ export function ThemedToaster() {
       }}
       gutter={12}
       toastOptions={{
-        // Default duration
         duration: 4000,
+        style: {
+          background: "transparent",
+          boxShadow: "none",
+          padding: 0,
+        },
       }}
     />
   );
 }
-

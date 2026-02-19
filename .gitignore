@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# local tools and IDE
+.claude/
+.cursor/
+
+# local web folder (optional to keep out of repo)
+web/
