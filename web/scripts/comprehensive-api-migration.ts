@@ -1,0 +1,337 @@
+#!/usr/bin/env node
+
+/**
+ * Comprehensive API Route Tracking Migration Script
+ * 
+ * This script migrates ALL API routes in the application to include tracking.
+ * It handles different types of routes with appropriate tracking configurations.
+ */
+
+const fs = require('fs')
+const path = require('path')
+const { readdirSync, statSync } = fs
+
+interface RouteFile {
+  path: string
+  content: string
+  hasTracking: boolean
+  methods: string[]
+  routeType: 'core' | 'tenant' | 'application' | 'webhook' | 'report'
+}
+
+class ComprehensiveAPIMigrator {
+  private apiDir: string
+  private dryRun: boolean
+
+  constructor(apiDir: string, dryRun: boolean = true) {
+    this.apiDir = apiDir
+    this.dryRun = dryRun
+  }
+
+  /**
+   * Find all API route files
+   */
+  async findRouteFiles(): Promise<RouteFile[]> {
+    const files = this.findFilesRecursively(this.apiDir, 'route.ts')
+    
+    const routeFiles: RouteFile[] = []
+    
+    for (const filePath of files) {
+      const content = fs.readFileSync(filePath, 'utf-8')
+      const methods = this.extractMethods(content)
+      const hasTracking = this.hasTracking(content)
+      const routeType = this.determineRouteType(filePath)
+      
+      routeFiles.push({
+        path: filePath,
+        content,
+        hasTracking,
+        methods,
+        routeType
+      })
+    }
+    
+    return routeFiles
+  }
+
+  /**
+   * Recursively find files with specific name
+   */
+  private findFilesRecursively(dir: string, filename: string): string[] {
+    const files: string[] = []
+    
+    try {
+      const items = readdirSync(dir)
+      
+      for (const item of items) {
+        const fullPath = path.join(dir, item)
+        const stat = statSync(fullPath)
+        
+        if (stat.isDirectory()) {
+          files.push(...this.findFilesRecursively(fullPath, filename))
+        } else if (item === filename) {
+          files.push(fullPath)
+        }
+      }
+    } catch (error) {
+      // Directory doesn't exist or can't be read
+    }
+    
+    return files
+  }
+
+  /**
+   * Extract HTTP methods from route file
+   */
+  private extractMethods(content: string): string[] {
+    const methods: string[] = []
+    const methodRegex = /export\s+(?:async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH)\s*\(/g
+    let match
+    
+    while ((match = methodRegex.exec(content)) !== null) {
+      methods.push(match[1])
+    }
+    
+    return methods
+  }
+
+  /**
+   * Check if file already has tracking
+   */
+  private hasTracking(content: string): boolean {
+    return content.includes('trackGET') || 
+           content.includes('trackPOST') || 
+           content.includes('trackPUT') || 
+           content.includes('trackDELETE') || 
+           content.includes('trackPATCH') ||
+           content.includes('createTrackedHandlers')
+  }
+
+  /**
+   * Determine route type based on path
+   */
+  private determineRouteType(filePath: string): RouteFile['routeType'] {
+    if (filePath.includes('/webhooks/')) return 'webhook'
+    if (filePath.includes('/reports/')) return 'report'
+    if (filePath.includes('/applications/')) return 'application'
+    if (filePath.includes('/tenants/')) return 'tenant'
+    return 'core'
+  }
+
+  /**
+   * Get appropriate tracking options for route type
+   */
+  private getTrackingOptions(routeType: RouteFile['routeType']): string {
+    switch (routeType) {
+      case 'webhook':
+        return 'TRACKING_OPTIONS.WEBHOOK'
+      case 'report':
+        return 'TRACKING_OPTIONS.HIGH_FREQUENCY'
+      case 'core':
+      case 'tenant':
+      case 'application':
+      default:
+        return 'TRACKING_OPTIONS.DEFAULT'
+    }
+  }
+
+  /**
+   * Migrate a single route file
+   */
+  async migrateRouteFile(file: RouteFile): Promise<string> {
+    const { content, methods, routeType } = file
+    
+    if (methods.length === 0) {
+      return content // No HTTP methods found
+    }
+    
+    let newContent = content
+    
+    // Add import for tracking wrappers
+    if (!newContent.includes('api-tracking-wrappers')) {
+      const importLine = `import { ${this.getImportNames(methods)}, TRACKING_OPTIONS } from '@/lib/api-tracking-wrappers'\n`
+      newContent = this.addImport(newContent, importLine)
+    }
+    
+    // Migrate each method
+    for (const method of methods) {
+      newContent = this.migrateMethod(newContent, method, routeType)
+    }
+    
+    return newContent
+  }
+
+  /**
+   * Get import names needed for methods
+   */
+  private getImportNames(methods: string[]): string {
+    const imports = methods.map(method => `track${method}`)
+    
+    if (methods.length > 3) {
+      imports.push('createTrackedHandlers')
+    }
+    
+    return imports.join(', ')
+  }
+
+  /**
+   * Add import statement
+   */
+  private addImport(content: string, importLine: string): string {
+    const lines = content.split('\n')
+    const lastImportIndex = lines.findLastIndex(line => 
+      line.startsWith('import ') || line.startsWith("import ")
+    )
+    
+    if (lastImportIndex >= 0) {
+      lines.splice(lastImportIndex + 1, 0, importLine)
+    } else {
+      lines.unshift(importLine)
+    }
+    
+    return lines.join('\n')
+  }
+
+  /**
+   * Migrate a single HTTP method
+   */
+  private migrateMethod(content: string, method: string, routeType: RouteFile['routeType']): string {
+    const trackingOptions = this.getTrackingOptions(routeType)
+    const methodRegex = new RegExp(
+      `export\\s+(?:async\\s+)?function\\s+${method}\\s*\\(([^)]*)\\)\\s*{`,
+      'g'
+    )
+    
+    return content.replace(methodRegex, (match, params) => {
+      return `export const ${method} = track${method}(async (${params}) => {`
+    })
+  }
+
+  /**
+   * Add tracking options to the end of the method
+   */
+  private addTrackingOptions(content: string, routeType: RouteFile['routeType']): string {
+    const trackingOptions = this.getTrackingOptions(routeType)
+    
+    // Find the last closing brace and add tracking options
+    const lines = content.split('\n')
+    const lastBraceIndex = lines.findLastIndex(line => line.trim() === '}')
+    
+    if (lastBraceIndex >= 0) {
+      lines[lastBraceIndex] = `}, ${trackingOptions})`
+    }
+    
+    return lines.join('\n')
+  }
+
+  /**
+   * Generate migration report
+   */
+  generateMigrationReport(routeFiles: RouteFile[]): void {
+    console.log('🔍 Comprehensive API Route Migration Analysis\n')
+    
+    const totalFiles = routeFiles.length
+    const filesWithTracking = routeFiles.filter(f => f.hasTracking).length
+    const filesNeedingMigration = totalFiles - filesWithTracking
+    
+    console.log(`📊 Summary:`)
+    console.log(`   Total API route files: ${totalFiles}`)
+    console.log(`   Already have tracking: ${filesWithTracking}`)
+    console.log(`   Need migration: ${filesNeedingMigration}\n`)
+    
+    // Group by route type
+    const byType = routeFiles.reduce((acc, file) => {
+      acc[file.routeType] = (acc[file.routeType] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    
+    console.log(`📁 Route Types:`)
+    Object.entries(byType).forEach(([type, count]) => {
+      console.log(`   ${type}: ${count} files`)
+    })
+    console.log('')
+    
+    if (filesNeedingMigration === 0) {
+      console.log('✅ All API routes already have tracking!')
+      return
+    }
+    
+    console.log('📝 Migration Plan:\n')
+    
+    routeFiles
+      .filter(f => !f.hasTracking)
+      .forEach(file => {
+        const trackingOptions = this.getTrackingOptions(file.routeType)
+        console.log(`📄 ${path.relative(this.apiDir, file.path)}`)
+        console.log(`   Type: ${file.routeType}`)
+        console.log(`   Methods: ${file.methods.join(', ')}`)
+        console.log(`   Tracking: ${trackingOptions}`)
+        console.log('')
+      })
+  }
+
+  /**
+   * Run the migration
+   */
+  async run(): Promise<void> {
+    console.log('🚀 Starting Comprehensive API Route Tracking Migration\n')
+    
+    const routeFiles = await this.findRouteFiles()
+    
+    if (this.dryRun) {
+      this.generateMigrationReport(routeFiles)
+      console.log('💡 Run with --execute flag to apply changes')
+    } else {
+      console.log('⚠️  Executing migration...\n')
+      
+      let successCount = 0
+      let errorCount = 0
+      
+      for (const file of routeFiles.filter(f => !f.hasTracking)) {
+        try {
+          let newContent = await this.migrateRouteFile(file)
+          
+          // Add tracking options to each method
+          for (const method of file.methods) {
+            const methodRegex = new RegExp(
+              `export const ${method} = track${method}\\(async \\([^)]*\\) => \\{[\\s\\S]*?\\}\\)`,
+              'g'
+            )
+            
+            newContent = newContent.replace(methodRegex, (match) => {
+              const trackingOptions = this.getTrackingOptions(file.routeType)
+              return match.replace(/}\)$/, `}, ${trackingOptions})`)
+            })
+          }
+          
+          fs.writeFileSync(file.path, newContent)
+          console.log(`✅ Migrated: ${path.relative(this.apiDir, file.path)} (${file.routeType})`)
+          successCount++
+        } catch (error) {
+          console.error(`❌ Failed to migrate ${file.path}:`, error)
+          errorCount++
+        }
+      }
+      
+      console.log(`\n🎉 Migration completed!`)
+      console.log(`   ✅ Success: ${successCount}`)
+      console.log(`   ❌ Errors: ${errorCount}`)
+    }
+  }
+}
+
+// CLI usage
+async function main() {
+  const args = process.argv.slice(2)
+  const dryRun = !args.includes('--execute')
+  const apiDir = path.join(process.cwd(), 'apps/web/src/app/api')
+  
+  const migrator = new ComprehensiveAPIMigrator(apiDir, dryRun)
+  await migrator.run()
+}
+
+if (require.main === module) {
+  main().catch(console.error)
+}
+
+module.exports = { ComprehensiveAPIMigrator }

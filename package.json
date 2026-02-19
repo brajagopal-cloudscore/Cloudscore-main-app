@@ -11,7 +11,11 @@
   "dependencies": {
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "@nextui-org/react": "^2.3.6",
+    "@nextui-org/spinner": "^2.0.30",
+    "next-themes": "^0.4.6",
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

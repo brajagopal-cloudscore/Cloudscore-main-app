@@ -1,0 +1,2 @@
+ALTER TABLE "provider_models" DROP CONSTRAINT "uq_provider_models";--> statement-breakpoint
+ALTER TABLE "provider_models" ADD CONSTRAINT "uq_provider_models_tenant" UNIQUE("provider","model_id","tenant_id");

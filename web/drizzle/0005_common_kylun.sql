@@ -1,0 +1,1 @@
+ALTER TABLE "application_documentation" DROP CONSTRAINT "uq_app_doc_section_field";

@@ -1,0 +1,7 @@
+[
+  { "model": "claude-3.5-3.7-haiku", "input": 0.25, "output": 1.25 },
+  { "model": "claude-3.5-3.7-sonnet", "input": 3.0, "output": 15.0 },
+  { "model": "claude-3-sonnet", "input": 3.0, "output": 15.0 },
+  { "model": "claude-3-opus", "input": 15.0, "output": 75.0 },
+  { "model": "claude-2.0-2.1", "input": 8.0, "output": 24.0 }
+]

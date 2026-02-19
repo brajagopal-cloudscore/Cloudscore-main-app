@@ -1,0 +1,505 @@
+1. - not working
+jql_query - {
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "status",
+            "operator": "=",
+            "value": "done",
+            "field_es": "status"
+        }
+    ]
+}
+
+Search payload - {
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "jira"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "status",
+                                "operator": "in",
+                                "value": "Done”
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+2. - not working
+jql_query - {
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "status",
+            "operator": "=",
+            "value": "in progress",
+            "field_es": "status"
+        }
+    ]
+}
+
+Search payload - {
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "jira"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "status",
+                                "operator": "in",
+                                "value": "In Progress"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+3. find the records of component type = direct messages - not working
+
+jql_query - {
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "component_type",
+            "operator": "=",
+            "value": "direct messages",
+            "field_es": "component_type"
+        }
+    ]
+}
+
+Search payload - {
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [
+        "meetings",
+        "team_chats"
+    ],
+    "connector_name": [
+        "zoom"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "component_type",
+                                "operator": "in",
+                                "value": "direct_messages"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+4. find the records which contains text files - not working
+
+jql_query - {
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "file_type",
+            "operator": "=",
+            "value": "text",
+            "field_es": "attachments.file_type"
+        }
+    ]
+}
+
+Search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [
+        "meetings",
+        "team_chats"
+    ],
+    "connector_name": [
+        "zoom"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "file_type",
+                        "rules": [
+                            {
+                                "type": "file_type",
+                                "field": "file_type",
+                                "operator": "=",
+                                "value": "txt"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+5. show the participants = dishant - not working
+
+jql_query -
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "participants",
+            "operator": "=",
+            "value": "dishant",
+            "field_es": "channel_members.email"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [
+        "meetings",
+        "team_chats"
+    ],
+    "connector_name": [
+        "zoom"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "participants",
+                                "field": "participants",
+                                "operator": "=",
+                                "value": "drathi@kentron.ai"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+6. find the documents of kentron space - not working
+
+jql_query - 
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "space_name",
+            "operator": "=",
+            "value": "kentron",
+            "field_es": "space_name"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "confluence"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "space_name",
+                                "operator": "in",
+                                "value": "Kentron"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+7. find the documents of current status - working - it should shown selected in refine filter
+
+jql_query - 
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "status",
+            "operator": "=",
+            "value": "current",
+            "field_es": "status"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "confluence"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "status",
+                                "operator": "in",
+                                "value": "current"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+8. find the documents of pages document type - working - 
+
+jql_query - 
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "document_type",
+            "operator": "=",
+            "value": "pages",
+            "field_es": "document_type"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "confluence"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "document_type",
+                                "operator": "in",
+                                "value": "pages"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+9. find the tickets of kn platform development project - not working
+
+jql_query -
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "project_name",
+            "operator": "=",
+            "value": "kn platform development",
+            "field_es": "project_name"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "jira"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "project_name",
+                                "operator": "in",
+                                "value": "KN Platform Development"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+10. find the tickets which are in todo status - not working
+
+jql_query -
+{
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "status",
+            "operator": "=",
+            "value": "todo",
+            "field_es": "status"
+        }
+    ]
+}
+
+search payload - 
+{
+    "workspace_id": "87577d21-b4c7-414f-95bc-4fcf5a36ce97",
+    "component_name": [],
+    "connector_name": [
+        "jira"
+    ],
+    "search": {
+        "combinator": "and",
+        "not": false,
+        "rules": [
+            {
+                "combinator": "and",
+                "type": "search",
+                "rules": [
+                    {
+                        "combinator": "or",
+                        "type": "dynamic",
+                        "rules": [
+                            {
+                                "type": "refine",
+                                "field": "status",
+                                "operator": "in",
+                                "value": "To Do"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+
+
+
+11. find the records which has mp4 attachment - working
+12. show me the records of ripal participant - not working
+13. find the documents with csv files - working
+14. find the documents of Aaditya Jitekar - not working
+15. find me the records of pages with current status - not working
+
+jql_query - {
+    "combinator": "and",
+    "rules": [
+        {
+            "field": "status",
+            "operator": "=",
+            "value": "current status",
+            "field_es": "status"
+        }
+    ]
+}
+
+16. find me the records of pages document type and has png files - working
+17. find me the records of kentron space - not working
+18. show me the tickets from  Kn Platform Development project - not working
+19. show the records which contains deployment - 
