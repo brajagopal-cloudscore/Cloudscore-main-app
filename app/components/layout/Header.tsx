@@ -1,8 +1,9 @@
-"use client";
+ "use client";
 
 import React from "react";
 import { ChevronDown, Building2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 interface HeaderProps {
   className?: string;
@@ -33,6 +34,9 @@ export default function Header({ className }: HeaderProps) {
         <FileText className="h-4 w-4" />
       </button>
 
+      {/* Theme toggle */}
+      <ThemeToggle />
+
       {/* User avatar */}
       <button className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
         BM
@@ -40,3 +44,4 @@ export default function Header({ className }: HeaderProps) {
     </header>
   );
 }
+

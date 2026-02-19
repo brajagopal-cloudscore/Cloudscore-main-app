@@ -94,3 +94,4 @@ export const showErrorToast = (message: string, description?: string) => {
     toast.remove(toastId);
   }, 5100);
 };
+
